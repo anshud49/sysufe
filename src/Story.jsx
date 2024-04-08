@@ -16,6 +16,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/swiper-bundle.css';
 import 'swiper/components/effect-coverflow/effect-coverflow.min.css';
 SwiperCore.use([EffectCoverflow]);
+
+//for making different url for different cateogory
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
@@ -43,7 +45,6 @@ let initialCategories = [
   'ENGINEERING',
   'CINEMA',
   'JOURNALISM',
-  'Anshu',
 ];
 
 export default function Story() {
@@ -137,7 +138,7 @@ export default function Story() {
     const results = performSearch2(e.target.value);
     setSearchResults2(results);
   }
-
+  // for adding category to url
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     const myParam = searchParams.get('category');
@@ -195,6 +196,10 @@ export default function Story() {
   function handleSubmit(e) {
     const random = Math.random() * 4;
     e.preventDefault();
+    setPublishclicked(true);
+    setTimeout(() => {
+      setPublishclicked(false);
+    }, 2000);
     const Data = {
       subject: subject,
       description: describe,
@@ -250,10 +255,14 @@ export default function Story() {
     setShow3(false);
     setShow4(false);
   }
-
+   
+  //current favourite categories
   const [favourite, setFavourite] = useState([]);
+  //favourite categories fetched from local storage
   const [savedfavourite, setsavedFavourite] = useState([]);
 
+
+  //fetch favourite categories from local storage when website is run or reloaded
   useEffect(() => {
     const sf = JSON.parse(localStorage.getItem('favorited-categories'));
     if (sf) {
@@ -262,6 +271,7 @@ export default function Story() {
     }
   }, []);
 
+  //whenevver favourite is changed , add that element or remove that element from local storage
   useEffect(() => {
     localStorage.setItem('favorited-categories', JSON.stringify(favourite));
     setsavedFavourite([...favourite]);
@@ -297,6 +307,7 @@ export default function Story() {
     setFlipped((prev) => !prev);
   }
 
+  // if anything other than "browase a category" or "Select a category" is clicked , then hide their searchbar
   window.addEventListener('click', (e) => {
     if (
       document.getElementById('choose1').contains(e.target) ||
@@ -558,20 +569,24 @@ export default function Story() {
       );
     });
   }
+   
+  // state used to check if the current category is in the favourite cateogory or not
   const [active, setActive] = useState(false);
+  // state used to check if any category is selected , then show the star 
   const [Bs, setBs] = useState(false);
 
   function handlefav() {
-    //handle ADD fav
+   
     if (search.length > 0) {
-      //search already in fav
+      
       if (favourite.find((fav) => fav === search)) {
         const x = favourite.filter((fav) => fav != search);
         setFavourite(x);
       } else setFavourite([...favourite, search]);
     }
   }
-
+  
+  // if category is found in favourite category , make active true
   useEffect(() => {
     if (search && favourite.find((fav) => fav === search)) {
       setActive(true);
@@ -580,6 +595,7 @@ export default function Story() {
     }
   }, [search, favourite]);
 
+  // if category is selected , make bs true
   useEffect(() => {
     if (search) {
       setBs(true);
@@ -587,29 +603,51 @@ export default function Story() {
       setBs(false);
     }
   }, [search]);
+
+  //if a category is selected , show a share sticker
   const [shareclicked, setShareclicked] = useState(false);
+ 
   const handleShare = () => {
     setShareclicked(true);
     setTimeout(() => {
       setShareclicked(false);
     }, 5000);
   };
+
+  // show toast message when share sticker is clicked and link is copied
   const toast = () => {
     const params = window.location.href;
 
     return (
       <div className="toast">
         {params}
-        <BiCopy
+        <BiCopy className='copy'
           cursor={'pointer'}
           onClick={() => navigator.clipboard.writeText(params)}
         ></BiCopy>
       </div>
     );
   };
+ 
+  // when publish is clicked , then for showing a toast message that story is posted
+  const [publishclicked, setPublishclicked] = useState(false);
+
+  //making toast for showing a toast message that story is posted
+  const toast1 = () => {
+    const mess = "Story Posted";
+
+    return (
+      <div className="toast1">
+        {mess}
+      </div>
+    );
+  };
   return (
     <div className="flex">
+       {/* showing toast message when share is clicked */}
       {shareclicked && toast()}
+      {/* showing toast message when story is published  */}
+      {publishclicked && toast1()}
       <Popular onChildValue={handleChildValue} />
       <div className="story-section">
         <form className="section-1">
@@ -716,9 +754,11 @@ export default function Story() {
 
         <div className="middle-line" />
 
-        <section className="section-2 column">
+        <section className="section-2">
           <div className="section-2-head">
             <h1>
+              {/* show which cateogry is being selected */}
+
               {search ? <>Read Stories on {search}</> : <>Read Stories</>}
             </h1>
 
@@ -740,11 +780,17 @@ export default function Story() {
 
                 <div className="flex-filter">
                   <h2 className="filter-heading">
-                    <BsFillShareFill
-                      size={17}
-                      onClick={handleShare}
-                      cursor={'pointer'}
-                    />
+                   
+                   {/* showing share option if any category is selected  */}
+                     {Bs && (
+                       <BsFillShareFill
+                       size={17}
+                       onClick={handleShare}
+                       cursor={'pointer'}
+                     />
+                    )}
+                   {/* showing filled star if current category is under favourite category  */}
+                    
                     {Bs && active && (
                       <BsFillStarFill
                         className="BsFill"
@@ -752,6 +798,7 @@ export default function Story() {
                         size={'17'}
                       />
                     )}
+                    {/* showing  star if current category is not under favourite category  */}
                     {Bs && !active && (
                       <BsStar
                         className="BsStar"
@@ -769,6 +816,7 @@ export default function Story() {
                     onClick={handleflip}
                   />
                 </div>
+                
               </div>
 
               {show4 ? (
@@ -859,6 +907,7 @@ export default function Story() {
           ) : (
             <div className="container">
               <section className="item-section-main">
+                
                 <Swiper
                   effect="coverflow"
                   // grabCursor='true'
@@ -919,6 +968,8 @@ export default function Story() {
           )}
         </section>
       </div>
+     
     </div>
+    
   );
 }
