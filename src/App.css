@@ -86,7 +86,7 @@ html {
   font-size: 3.375rem;
   line-height: 86px;
   color: #3c3c3c;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
 }
 
 .header {
